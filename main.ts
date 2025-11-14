@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std/http/server.ts";
 
 const kv = await Deno.openKv();
 
+// Random permanent token generator
 function genToken() {
   const arr = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(arr, b => b.toString(16).padStart(2,"0")).join("").slice(0,10);
@@ -59,7 +60,7 @@ serve(async (req) => {
   }
 
   // -------------------------------
-  // 3) HOME PAGE (Styled Web UI)
+  // 3) HOME PAGE (Styled Web UI + Copy button)
   // -------------------------------
   return new Response(
 `<!DOCTYPE html>
@@ -72,13 +73,11 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
 }
-
 .container {
   background: #fff;
   padding: 40px 50px;
@@ -88,12 +87,10 @@ body {
   max-width: 600px;
   width: 90%;
 }
-
 h2 {
   color: #333;
   margin-bottom: 20px;
 }
-
 input[type=text] {
   width: 80%;
   padding: 15px;
@@ -103,12 +100,10 @@ input[type=text] {
   outline: none;
   transition: border 0.3s;
 }
-
 input[type=text]:focus {
   border-color: #89f7fe;
 }
-
-button {
+button.generate {
   padding: 15px 25px;
   font-size: 16px;
   margin-left: 10px;
@@ -119,17 +114,29 @@ button {
   cursor: pointer;
   transition: transform 0.2s;
 }
-
-button:hover {
+button.generate:hover {
   transform: scale(1.05);
 }
-
 #result {
   margin-top: 25px;
   font-weight: bold;
   word-break: break-all;
   font-size: 16px;
   color: #444;
+}
+button#copyBtn {
+  display: none;
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #66a6ff;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+button#copyBtn:hover {
+  transform: scale(1.05);
 }
 </style>
 </head>
@@ -138,8 +145,9 @@ button:hover {
 <h2>MovieZone Token + Extension ShortLink</h2>
 <p>Enter any direct MP4 / MKV / image URL:</p>
 <input type="text" id="src" placeholder="https://mediafire.com/xxxx/file.mp4">
-<button onclick="generate()">Generate</button>
+<button class="generate" onclick="generate()">Generate</button>
 <div id="result"></div>
+<button id="copyBtn">Copy Link</button>
 </div>
 <script>
 async function generate() {
@@ -151,10 +159,18 @@ async function generate() {
     body: JSON.stringify({src})
   });
   const data = await res.json();
+  const resultDiv = document.getElementById('result');
+  const copyBtn = document.getElementById('copyBtn');
+  
   if(data.error) {
-    document.getElementById('result').innerText = data.error;
+    resultDiv.innerText = data.error;
+    copyBtn.style.display = 'none';
   } else {
-    document.getElementById('result').innerHTML = 'Short Link: <a href="'+data.short+'" target="_blank">'+data.short+'</a>';
+    resultDiv.innerHTML = '<a href="'+data.short+'" target="_blank">'+data.short+'</a>';
+    copyBtn.style.display = 'inline-block';
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(data.short).then(()=>alert('Link copied!'));
+    };
   }
 }
 </script>
