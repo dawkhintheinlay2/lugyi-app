@@ -59,27 +59,88 @@ serve(async (req) => {
   }
 
   // -------------------------------
-  // 3) HOME PAGE (Web UI)
+  // 3) HOME PAGE (Styled Web UI)
   // -------------------------------
   return new Response(
 `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MovieZone ShortLink + Token</title>
+<title>MovieZone Token + Extension ShortLink</title>
 <style>
-body { font-family: sans-serif; text-align:center; padding:50px; }
-input[type=text] { width: 60%; padding:10px; font-size:16px; }
-button { padding:10px 20px; font-size:16px; margin-left:10px; cursor:pointer; }
-#result { margin-top:20px; font-weight:bold; word-break:break-all; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #fff;
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+input[type=text] {
+  width: 80%;
+  padding: 15px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 2px solid #66a6ff;
+  outline: none;
+  transition: border 0.3s;
+}
+
+input[type=text]:focus {
+  border-color: #89f7fe;
+}
+
+button {
+  padding: 15px 25px;
+  font-size: 16px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #66a6ff, #89f7fe);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+#result {
+  margin-top: 25px;
+  font-weight: bold;
+  word-break: break-all;
+  font-size: 16px;
+  color: #444;
+}
 </style>
 </head>
 <body>
+<div class="container">
 <h2>MovieZone Token + Extension ShortLink</h2>
 <p>Enter any direct MP4 / MKV / image URL:</p>
 <input type="text" id="src" placeholder="https://mediafire.com/xxxx/file.mp4">
 <button onclick="generate()">Generate</button>
 <div id="result"></div>
+</div>
 <script>
 async function generate() {
   const src = document.getElementById('src').value.trim();
