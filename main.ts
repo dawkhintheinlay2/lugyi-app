@@ -3,7 +3,6 @@ import { serve } from "https://deno.land/std/http/server.ts";
 
 const kv = await Deno.openKv();
 
-// Random permanent token generator
 function genToken() {
   const arr = crypto.getRandomValues(new Uint8Array(6));
   return Array.from(arr, b => b.toString(16).padStart(2,"0")).join("").slice(0,10);
@@ -39,7 +38,7 @@ serve(async (req) => {
   }
 
   // -------------------------------
-  // 2) PROXY VIDEO / FILE
+  // 2) PROXY VIDEO / FILE WITH RANGE SUPPORT
   // -------------------------------
   if(url.pathname.startsWith("/video/")) {
     const parts = url.pathname.split("/");
@@ -51,9 +50,23 @@ serve(async (req) => {
     if(!value) return new Response("Invalid token", {status:404});
 
     try {
-      const mediaRes = await fetch(value.src);
-      const headers: HeadersInit = new Headers(mediaRes.headers);
-      return new Response(mediaRes.body, { headers, status: mediaRes.status });
+      const headers = new Headers(req.headers);
+      const rangeHeader = headers.get("range");
+
+      const fetchHeaders: HeadersInit = {};
+      if(rangeHeader) fetchHeaders["Range"] = rangeHeader;
+
+      const mediaRes = await fetch(value.src, { headers: fetchHeaders });
+      const resHeaders: HeadersInit = new Headers(mediaRes.headers);
+
+      // Optional: force download name based on token + extension
+      resHeaders.set("Content-Disposition", `inline; filename="${token}${value.ext}"`);
+
+      return new Response(mediaRes.body, {
+        headers: resHeaders,
+        status: mediaRes.status
+      });
+
     } catch(e) {
       return new Response("Failed to fetch", {status:500});
     }
